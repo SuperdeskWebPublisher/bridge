@@ -11,16 +11,21 @@
  * @copyright 2016 Sourcefabric z.ú.
  * @license http://www.superdesk.org/license
  */
-namespace SWP\Component\Bridge\Model;
+namespace SWP\Component\Bridge\Validator;
 
-use SWP\Component\Common\Model\EnableableInterface;
-use SWP\Component\Common\Model\SoftDeletableInterface;
-use SWP\Component\Common\Model\TimestampableInterface;
-
-interface PackageInterface extends ContentInterface, TimestampableInterface, EnableableInterface, SoftDeletableInterface
+interface ValidatorOptionsInterface
 {
     /**
-     * @return array
+     * Gets current validator schema.
+     *
+     * @return string
      */
-    public function getItems();
+    public function getSchema();
+
+    /**
+     * Gets validator format.
+     *
+     * @return string
+     */
+    public function getFormat();
 }

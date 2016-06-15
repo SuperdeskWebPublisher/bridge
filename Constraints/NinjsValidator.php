@@ -1,19 +1,18 @@
 <?php
-
 /**
- * This file is part of the Superdesk Web Publisher Bridge Component.
- *
- * Copyright 2016 Sourcefabric z.ú. and contributors.
- *
- * For the full copyright and license information, please see the
- * AUTHORS and LICENSE files distributed with this source code.
- *
- * @copyright 2016 Sourcefabric z.ú.
- * @license http://www.superdesk.org/license
+ * @author Rafał Muszyński <rafal.muszynski@sourcefabric.org>
+ * @copyright 2015 Sourcefabric z.ú.
+ * @license http://www.gnu.org/licenses/gpl-3.0.txt
  */
-namespace SWP\Component\Bridge\Validator;
 
-class NinjsValidator extends JsonValidator
+namespace SWP\Component\Bridge\Constraints;
+
+use JsonSchema\Validator;
+use Symfony\Component\Validator\Constraint;
+use Symfony\Component\Validator\ConstraintValidator;
+use Symfony\Component\Validator\Exception\UnexpectedTypeException;
+
+class NinjsValidator extends ConstraintValidator
 {
     protected $schema = '{
     "$schema": "http://json-schema.org/draft-03/schema#",
@@ -33,21 +32,16 @@ class NinjsValidator extends JsonValidator
         }
     },
     "properties" : {
-        "guid" : {
+        "uri" : {
             "description" : "The identifier for this news object",
             "type" : "string",
-            "format" : "guid",
+            "format" : "uri",
             "required" : true
         },
         "type" : {
             "description" : "The generic news type of this news object",
             "type" : "string",
             "enum" : ["text", "audio", "video", "picture", "graphic", "composite"]
-        },
-        "slugline" : {
-            "description" : "The slugline",
-            "type" : "string",
-            "required" : true
         },
         "mimetype" : {
             "description" : "A MIME type which applies to this news object",
@@ -85,10 +79,6 @@ class NinjsValidator extends JsonValidator
             "description" : "The editorial urgency of the content from 1 to 9. 1 represents the highest urgency, 9 the lowest.",
             "type" : "number"
         },
-        "priority" : {
-            "description" : "The editorial priority of the content from 1 to 9. 1 represents the highest priority, 9 the lowest.",
-            "type" : "number"
-        },
         "copyrightholder" : {
             "description" : "The person or organisation claiming the intellectual property for the content.",
             "type" : "string"
@@ -104,24 +94,6 @@ class NinjsValidator extends JsonValidator
         "language" : {
             "description" : "The human language used by the content. The value should follow IETF BCP47",
             "type" : "string"
-        },
-        "service" : {
-            "description" : "A service e.g. World Photos, UK News etc.",
-            "type" : "array",
-            "items" : {
-                "type" : "object",
-                "additionalProperties" : false,
-                "properties" : {
-                    "name" : {
-                        "description" : "The name of a service",
-                        "type" : "string"
-                    },
-                    "code" : {
-                        "description": "The code for the service in a scheme (= controlled vocabulary) which is identified by the scheme property",
-                        "type" : "string"
-                    }
-                }
-            }
         },
         "person" : {
             "description" : "An individual human being",
@@ -221,28 +193,8 @@ class NinjsValidator extends JsonValidator
                         "type" : "string",
                         "format" : "uri"
                     },
-                    "qcode" : {
+                    "code" : {
                         "description": "The code for the place in a scheme (= controlled vocabulary) which is identified by the scheme property",
-                        "type" : "string"
-                    },
-                    "state" : {
-                        "description" : "The state for the place",
-                        "type" : "string"
-                    },
-                    "group" : {
-                        "description" : "The place group",
-                        "type" : "string"
-                    },
-                    "name" : {
-                        "description" : "The place name",
-                        "type" : "string"
-                    },
-                    "country" : {
-                        "description" : "The country name",
-                        "type" : "string"
-                    },
-                    "world_region" : {
-                        "description" : "The world region",
                         "type" : "string"
                     }
                 }
@@ -394,8 +346,24 @@ class NinjsValidator extends JsonValidator
     /**
      * {@inheritdoc}
      */
-    public function getFormat()
+    public function validate($value, Constraint $constraint)
     {
-        return 'ninjs';
+        if (!$constraint instanceof Ninjs) {
+            throw new UnexpectedTypeException($constraint, __NAMESPACE__.'\Ninjs');
+        }
+
+        if (null === $value || '' === $value) {
+            return;
+        }
+
+        $validator = new Validator();
+        $validator->check($value, json_decode($this->schema));
+
+        if (!$validator->isValid()) {
+            $this->context->buildViolation($constraint->message)
+                ->setParameter('{{ value }}', $this->formatValue($value))
+                ->setCode(Ninjs::INVALID_FORMAT_ERROR)
+                ->addViolation();
+        }
     }
 }

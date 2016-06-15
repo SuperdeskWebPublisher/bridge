@@ -11,17 +11,12 @@
  * @copyright 2016 Sourcefabric z.ú.
  * @license http://www.superdesk.org/license
  */
-namespace SWP\Component\Bridge\Model;
+namespace SWP\Component\Bridge\Exception;
 
-interface ItemInterface extends ContentInterface
+class MethodNotSupportedException extends \InvalidArgumentException implements ExceptionInterface
 {
-    /**
-     * @return string
-     */
-    public function getBody();
-
-    /**
-     * @param string $body
-     */
-    public function setBody($body);
+    public function __construct($method)
+    {
+        parent::__construct(sprintf('%s is not supported!.', $method));
+    }
 }

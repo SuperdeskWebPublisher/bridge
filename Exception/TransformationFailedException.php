@@ -11,17 +11,8 @@
  * @copyright 2016 Sourcefabric z.ú.
  * @license http://www.superdesk.org/license
  */
-namespace SWP\Component\Bridge\Model;
+namespace SWP\Component\Bridge\Exception;
 
-interface ItemInterface extends ContentInterface
+class TransformationFailedException extends \RuntimeException implements ExceptionInterface
 {
-    /**
-     * @return string
-     */
-    public function getBody();
-
-    /**
-     * @param string $body
-     */
-    public function setBody($body);
 }
